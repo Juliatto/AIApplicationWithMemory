@@ -17,38 +17,7 @@ load_dotenv()
 groq_api_key = os.getenv("GROQ_API_KEY")
 
 # Inicializa o modelo de IA utilizando a API do Groq
-model = ChatGroq(model="Gemma2-9b-It", groq_api_key=groq_api_key)
-
-##EXEMPLO 1 ---------------------------------------------------------------------------------------------------------------------
-
-# Dicionário para armazenar históricos de conversação por sessão
-store = {}
-
-def get_session_history(session_id: str) -> BaseChatMessageHistory:
-    """
-    Recupera ou cria um histórico de mensagens para uma determinada sessão.
-    Isso permite manter um contexto contínuo para diferentes usuários ou interações.
-    """
-    if session_id not in store:
-        store[session_id] = ChatMessageHistory()
-    return store[session_id]
-
-# Cria um gerenciador de histórico que conecta o modelo ao armazenamento de mensagens
-with_message_history = RunnableWithMessageHistory(model, get_session_history)
-
-# Configuração da sessão (identificador único para cada chat)
-config = {"configurable": {"session_id": "chat1"}}
-
-# Exemplo de interação inicial do usuário
-response = with_message_history.invoke(
-    [HumanMessage(content="Oi, meu nome é Eduardo e sou um engenheiro de dados.")],
-    config=config
-)
-
-# Exibe a resposta inicial do chatbot
-print("Resposta do modelo:", response.content)
-
-##EXEMPLO 2 ---------------------------------------------------------------------------------------------------------------------
+model = ChatGroq(model="Gemma2-9b-It", groq_api_key = groq_api_key)
 
 # Criação de um prompt template para estruturar a entrada do modelo
 prompt = ChatPromptTemplate.from_messages(
@@ -61,8 +30,6 @@ prompt = ChatPromptTemplate.from_messages(
 # Conecta o modelo ao template de prompt
 chain = prompt | model
 
-# Exemplo de interação usando o template
-chain.invoke({"messages": [HumanMessage(content="Oi, meu nome é Eduardo")]})
 
 # Gerenciamento da memória do chatbot
 trimmer = trim_messages(
@@ -75,19 +42,85 @@ trimmer = trim_messages(
 )
 
 # Exemplo de histórico de mensagens
-messages = [
-    SystemMessage(content="Você é um bom assistente"),
-    HumanMessage(content="Oi! Meu nome é Bob"),
-    AIMessage(content="Oi, Bob! Como posso te ajudar?"),
-    HumanMessage(content="Eu gosto de sorvete de baunilha"),
-]
+city_data = {
+    "São Paulo": {
+        "população": "12,33 milhões",
+        "pontos_turisticos": ["Parque Ibirapuera", "Avenida Paulista", "Mercado Municipal", "Catedral da Sé"],
+        "universidade": "Universidade de São Paulo (USP)"
+    },
+    "Rio de Janeiro": {
+        "população": "6,7 milhões",
+        "pontos_turisticos": ["Cristo Redentor", "Pão de Açúcar", "Praia de Copacabana"],
+        "universidade": "Universidade Federal do Rio de Janeiro (UFRJ)"
+    },
+    "Salvador": {
+        "população": "2,9 milhões",
+        "pontos_turisticos": ["Pelourinho", "Elevador Lacerda", "Farol da Barra"],
+        "universidade": "Universidade Federal da Bahia (UFBA)"
+    },
+    "Belo Horizonte": {
+        "população": "2,5 milhões",
+        "pontos_turisticos": ["Praça da Liberdade", "Igreja São José", "Museu de Artes e Ofícios"],
+        "universidade": "Universidade Federal de Minas Gerais (UFMG)"
+    },
+    "Fortaleza": {
+        "população": "2,7 milhões",
+        "pontos_turisticos": ["Praia do Futuro", "Catedral Metropolitana", "Mercado Central"],
+        "universidade": "Universidade Federal do Ceará (UFC)"
+    },
+    "Brasília": {
+        "população": "3,1 milhões",
+        "pontos_turisticos": ["Congresso Nacional", "Catedral de Brasília", "Palácio do Planalto"],
+        "universidade": "Universidade de Brasília (UnB)"
+    },
+    "Curitiba": {
+        "população": "1,9 milhões",
+        "pontos_turisticos": ["Jardim Botânico", "Ópera de Arame", "Rua XV de Novembro"],
+        "universidade": "Universidade Federal do Paraná (UFPR)"
+    },
+    "Porto Alegre": {
+        "população": "1,5 milhões",
+        "pontos_turisticos": ["Parque Redenção", "Caminho dos Antiquários", "Fundação Ibere Camargo"],
+        "universidade": "Universidade Federal do Rio Grande do Sul (UFRGS)"
+    },
+    "Recife": {
+        "população": "1,6 milhões",
+        "pontos_turisticos": ["Praia de Boa Viagem", "Instituto Ricardo Brennand", "Marco Zero"],
+        "universidade": "Universidade Federal de Pernambuco (UFPE)"
+    },
+    "Manaus": {
+        "população": "2,1 milhões",
+        "pontos_turisticos": ["Teatro Amazonas", "Encontro das Águas", "Palácio Rio Negro"],
+        "universidade": "Universidade Federal do Amazonas (UFAM)"
+    },
+    "Natal": {
+        "população": "1,4 milhões",
+        "pontos_turisticos": ["Forte dos Reis Magos", "Praia de Ponta Negra", "Dunas de Genipabu"],
+        "universidade": "Universidade Federal do Rio Grande do Norte (UFRN)"
+    },
+    "Maceió": {
+        "população": "1,0 milhão",
+        "pontos_turisticos": ["Praia do Francês", "Palácio Marechal Floriano Peixoto", "Igreja de São Gonçalo do Amarante"],
+        "universidade": "Universidade Federal de Alagoas (UFAL)"
+    },
+    "Cuiabá": {
+        "população": "620 mil",
+        "pontos_turisticos": ["Parque Nacional de Chapada dos Guimarães", "Catedral Basílica do Senhor Bom Jesus", "Museu do Morro da Caixa D'Água"],
+        "universidade": "Universidade Federal de Mato Grosso (UFMT)"
+    },
+    "Aracaju": {
+        "população": "650 mil",
+        "pontos_turisticos": ["Praia de Atalaia", "Museu Palácio Marechal Floriano Peixoto", "Mercado Municipal"],
+        "universidade": "Universidade Federal de Sergipe (UFS)"
+    }
+}
 
 # Aplica o limitador de memória ao histórico de mensagens
-trimmer.invoke(messages)
+trimmer.invoke(city_data)
 
 # Criando um pipeline de execução para otimizar a passagem de informações
 chain = (
-    RunnablePassthrough.assign(messages=itemgetter("messages") | trimmer)  # Aplica a otimização do histórico
+    RunnablePassthrough.assign(city_data =itemgetter("city_data") | trimmer)  # Aplica a otimização do histórico
     | prompt  # Passa a entrada pelo template de prompt
     | model  # Envia para o modelo
 )
@@ -95,7 +128,31 @@ chain = (
 # Exemplo de interação utilizando o pipeline otimizado
 response = chain.invoke(
     {
-        "messages": messages + [HumanMessage(content="Qual sorvete eu gosto?")],
+        "city_data": city_data,  # Passa o dicionário separado
+        "messages": [HumanMessage(content="Qual é a população de São Paulo?")],  # Lista de mensagens
+        "language": "Português"
+    }
+)
+
+# Exibe a resposta final do modelo
+print("Resposta final:", response.content)
+
+# Exemplo 2 de interação utilizando o pipeline otimizado
+response = chain.invoke(
+    {
+        "city_data": city_data,
+        "messages": [HumanMessage(content="Quais são os pontos turísticos de Fortaleza?")],
+        "language": "Português"
+    }
+)
+
+print("Resposta final:", response.content)
+
+# Exemplo 3 de interação utilizando o pipeline otimizado
+response = chain.invoke(
+    {
+        "city_data": city_data,
+        "messages": [HumanMessage(content="Qual é a principal universidade de Recife?")],
         "language": "Português"
     }
 )
